@@ -20,6 +20,6 @@ scalacOptions in Global ++= Seq(
 
 lazy val jwt = project.in(file(".")).settings(
   name := "JWT test",
-  libraryDependencies += "io.spray" %%  "spray-json" % "1.3.2",
+  libraryDependencies += "org.scala-lang.modules" %% "scala-parser-combinators" % "1.0.2",
   mainClass in Compile := Some("com.github.jancajthaml.jwt.Main")
 )
