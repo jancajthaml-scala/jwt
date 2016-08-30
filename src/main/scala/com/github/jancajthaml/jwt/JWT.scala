@@ -9,20 +9,14 @@ import java.util.Base64
 import javax.crypto.Mac
 import javax.crypto.spec.SecretKeySpec
 
-
-class Header(val alg: String, val typ: String)
-
 object UniversalJsonProtocol extends DefaultJsonProtocol {
-  implicit object HeaderJsonFormat extends RootJsonFormat[Header] {
-    def write(x: Header) = {
-      JsObject((Map[String, Any]() /: x.getClass.getDeclaredFields) {(a, f) =>
-        f.setAccessible(true)
-        a + (f.getName -> f.get(x))
-      } map {case (key, value) => (key.toString -> JsString(value.toString))})
+  implicit object HeaderJsonFormat extends RootJsonFormat[Map[String, String]] {
+    def write(x: Map[String, String]) = {
+      JsObject(x map {case (key, value) => (key.toString -> JsString(value.toString))})
     }
 
     def read(value: JsValue) = { value.asJsObject.getFields("alg", "typ") match {
-      case Seq(JsString(alg), JsString(typ)) => new Header(alg, typ)
+      case Seq(JsString(alg), JsString(typ)) => Map("alg" -> alg, "typ" -> typ)
       case _ => throw new DeserializationException("Header expected")
     } }
   }
@@ -37,31 +31,66 @@ object Main extends App {
     //@otod check for length here
 
     //@todo extract to type/function maybe
-    val header: Header = new String(Base64.getDecoder().decode(chunks(0))).parseJson.convertTo[Header]
+    val header = new String(Base64.getDecoder().decode(chunks(0))).parseJson.convertTo[Map[String, String]]
 
-    if (header.typ != "JWT") {
-      println("not JSON Web Token... invalid")
+    header.get("typ") match {
+      case Some("JWT") => true
+      case x => throw new DeserializationException(s"Invalid type for JWT decoding ${x}")
     }
 
-    val mac: Mac = header.alg match {
-      case "HS256" => { //-> HmacSHA256
+    val mac: Mac = header.get("alg") match {
+      case Some("HS256") => { //-> HmacSHA256
         val x: Mac = Mac.getInstance("HmacSHA256")
         x.init(new SecretKeySpec("secret".getBytes(encoding), "HmacSHA256"))
         x
       }
-      case "HS384" => throw new DeserializationException("HS384 not yet implemented")
-      case "HS512" => throw new DeserializationException("HS512 not yet implemented")
-      case "RS256" => throw new DeserializationException("RS256 not yet implemented")
-      case "RS384" => throw new DeserializationException("RS384 not yet implemented")
-      case "RS512" => throw new DeserializationException("RS512 not yet implemented")
-      case "ES256" => throw new DeserializationException("ES256 not yet implemented")
-      case "ES384" => throw new DeserializationException("ES384 not yet implemented")
-      case "ES512" => throw new DeserializationException("ES512 not yet implemented")
+      case Some("HS384") => { //-> HmacSHA384
+        val x: Mac = Mac.getInstance("HmacSHA384")
+        x.init(new SecretKeySpec("secret".getBytes(encoding), "HmacSHA384"))
+        x
+      }
+      case Some("HS512") => { //-> HmacSHA512
+        val x: Mac = Mac.getInstance("HmacSHA512")
+        x.init(new SecretKeySpec("secret".getBytes(encoding), "HmacSHA512"))
+        x
+      }
+      case Some("RS256") => { //-> SHA256withRSA
+        val x: Mac = Mac.getInstance("SHA256withRSA")
+        x.init(new SecretKeySpec("secret".getBytes(encoding), "SHA256withRSA"))
+        x
+      }
+      case Some("RS384") => { //-> SHA384withRSA
+        val x: Mac = Mac.getInstance("SHA384withRSA")
+        x.init(new SecretKeySpec("secret".getBytes(encoding), "SHA384withRSA"))
+        x
+      }
+      case Some("RS512") => { //-> SHA512withRSA
+        val x: Mac = Mac.getInstance("SHA512withRSA")
+        x.init(new SecretKeySpec("secret".getBytes(encoding), "SHA512withRSA"))
+        x
+      }
+      case Some("ES256") => { //-> SHA256withECDSA
+        val x: Mac = Mac.getInstance("SHA256withECDSA")
+        x.init(new SecretKeySpec("secret".getBytes(encoding), "SHA256withECDSA"))
+        x
+      }
+      case Some("ES384") => { //-> SHA384withECDSA
+        val x: Mac = Mac.getInstance("SHA384withECDSA")
+        x.init(new SecretKeySpec("secret".getBytes(encoding), "SHA384withECDSA"))
+        x
+      }
+      case Some("ES512") => { //-> SHA512withECDSA
+        val x: Mac = Mac.getInstance("SHA512withECDSA")
+        x.init(new SecretKeySpec("secret".getBytes(encoding), "SHA512withECDSA"))
+        x
+      }
       case x => throw new DeserializationException(s"Unsupported algorithm ${x}")
     }
 
     val signature = chunks(2).getBytes(encoding)
-    val calculatedSignature: Array[Byte] = Base64.getEncoder().withoutPadding().encodeToString(mac.doFinal((chunks(0) + ('.' +: chunks(1))).getBytes(encoding))).getBytes(encoding)
+    val calculatedSignature: Array[Byte] = Base64.getEncoder().withoutPadding().encodeToString(
+      mac.doFinal((chunks(0) + ('.' +: chunks(1))).getBytes(encoding))
+    ).getBytes(encoding)
 
     (calculatedSignature.length == signature.length match {
       case true => if ((signature zip calculatedSignature).foldLeft (0) {(r, ab) => r + (ab._1 ^ ab._2)} == 0) true
@@ -75,7 +104,5 @@ object Main extends App {
     "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiYWRtaW4iOnRydWV9.TJVA95OrM7E2cBab30RMHrHDcEfxjoYZgeFONFh7HgQ",
     "utf-8"
   ))
-  //println(header.toJson)
 
-  //println(s"payload: $payload")
 }
