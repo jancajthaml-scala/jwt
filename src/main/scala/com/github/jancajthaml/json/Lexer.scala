@@ -5,7 +5,7 @@ import scala.util.parsing.combinator.syntactical._
 import scala.util.parsing.combinator.lexical._
 import scala.util.parsing.input.CharArrayReader.EofCh
 
-class Lexer extends StdLexical with ImplicitConversions {
+private[jancajthaml] class Lexer extends StdLexical with ImplicitConversions {
 
   override def token: Parser[Token] =
     ( string ^^ StringLit
@@ -18,7 +18,7 @@ class Lexer extends StdLexical with ImplicitConversions {
   
   def checkKeyword(xs : List[Any]) = {
     val strRep = xs mkString ""
-    if (reserved contains strRep) Keyword(strRep) else ErrorToken("Not a keyword: " + strRep)
+    if (reserved contains strRep) Keyword(strRep) else ErrorToken(s"Not a keyword: $strRep")
   }
   
   def string = '\"' ~> rep(charSeq | chrExcept('\"', '\n', EofCh)) <~ '\"' ^^ { _ mkString "" }

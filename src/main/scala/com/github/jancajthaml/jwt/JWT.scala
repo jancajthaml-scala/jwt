@@ -1,58 +1,11 @@
 package com.github.jancajthaml.jwt
 
-//import scala.util.parsing.json._
-import com.github.jancajthaml.json.JSON
-
-//import spray.json._ //spray.json.JsValue
-//import DefaultJsonProtocol._
+import com.github.jancajthaml.json.JSON.{parse => loads}
 
 import java.util.Base64
 
 import javax.crypto.Mac
 import javax.crypto.spec.SecretKeySpec
-
-
-//@todo remove these dependencies and implement from scratch
-/*
-import javax.crypto.Mac
-import javax.crypto.spec.SecretKeySpec
-
-object UniversalJsonProtocol extends DefaultJsonProtocol {
-  implicit object HeaderJsonFormat extends RootJsonFormat[Map[String, String]] {
-    def write(x: Map[String, String]) = {
-      JsObject(x map {case (key, value) => (key.toString -> JsString(value.toString))})
-    }
-
-    def read(value: JsValue) = {
-      /*
-      value.fields.flatMap {
-        case (epoch, obj) => obj.as[JsObject].fields.map(epoch -> _)
-      }.groupBy(_._2._1).mapValues(
-        _.map { case (epoch, (_, v)) => Seq(epoch, v.as[String]) }
-      )*/
-
-      value.asJsObject.getFields("alg", "typ") match {
-        case Seq(JsString(alg), JsString(typ)) => Map("alg" -> alg, "typ" -> typ)
-        case _ => throw new DeserializationException("Header expected")
-      }
-    }
-    //}
-  }
-}
-*/
-
-//import UniversalJsonProtocol._
-
-class DeserializationException(message: String = null, cause: Throwable = null) extends
-  RuntimeException(DeserializationException.defaultMessage(message, cause), cause)
-
-object DeserializationException {
-  def defaultMessage(message: String, cause: Throwable) =
-    if (message != null) message
-    else if (cause != null) cause.toString()
-    else null
-}
-
 
 object Main extends App {
 
@@ -63,8 +16,7 @@ object Main extends App {
     //@otod check for length here
 
     //@todo extract to type/function maybe
-    val header = JSON.parse(new String(Base64.getDecoder().decode(chunks(0)))).get.asInstanceOf[Map[String, Any]]
-    //.parseJson.convertTo[Map[String, String]]
+    val header = loads(new String(Base64.getDecoder().decode(chunks(0))))
 
     header.get("typ") match {
       case Some("JWT") => true
@@ -130,12 +82,32 @@ object Main extends App {
       case _ => new DeserializationException(s"Invalid token, signature does not match")
     })
 
-    JSON.parse(new String(Base64.getDecoder().decode(chunks(1)))).get.asInstanceOf[Map[String, Any]]
+    loads(new String(Base64.getDecoder().decode(chunks(1))))
+  }
+
+  def time[A](a: => A, n:Int) = {
+    var times = List[Long]()
+      for (_ <- 1 to n) {
+      val now = System.nanoTime
+      val res = a
+      times :::= List(System.nanoTime - now)
+    }
+    val result = times.sum / n
+    println((result / 1e6) + "ms")
+    result
   }
 
   println(decode(
     "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiYWRtaW4iOnRydWV9.TJVA95OrM7E2cBab30RMHrHDcEfxjoYZgeFONFh7HgQ",
     "utf-8"
   ))
+
+  var a = 0
+  for (a <- 1 to 10) {
+    time({decode(
+      "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiYWRtaW4iOnRydWV9.TJVA95OrM7E2cBab30RMHrHDcEfxjoYZgeFONFh7HgQ",
+      "utf-8"
+    )}, 1000)
+  }
 
 }

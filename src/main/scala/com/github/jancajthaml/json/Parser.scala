@@ -4,7 +4,7 @@ import scala.util.parsing.combinator._
 import scala.util.parsing.combinator.syntactical._
 import scala.util.parsing.combinator.lexical._
 
-class Parser extends StdTokenParsers with ImplicitConversions {
+private[jancajthaml] class Parser extends StdTokenParsers with ImplicitConversions {
 
   type Tokens = Lexer
   val lexical = new Tokens
