@@ -1,37 +1,51 @@
 package com.github.jancajthaml.jwt
 
+object jsondumps extends (Map[String, Any] => String) {
+  
+  def apply(value: Map[String, Any]): String = "{" + value.map(x => {("\"" + x._1 + "\":\"" + x._2 + "\"")}).mkString("",", ","") + "}"
+
+}
+
+object jsonloads extends (String => Map[String, Any]) {
+  
+  def apply(value: String): Map[String, String] = {
+    var loaded = Map[String, String]()
+    value.replaceAll("[\\r\\n{}]+", "").trim().split(",").foreach(x => x.split("\":") match {
+      case Array(x: String, y: String) => {
+        loaded += (x.trim().replaceAll("^.", "") -> y.trim().replaceAll("^[\\\"\\\']+|[\\\"\\\']+$", ""))
+      }
+    })
+    loaded
+  }
+
+}
+
 
 object base64encode extends (Any => String) {
 
   import com.github.jancajthaml.base64.Base64
 
   def apply(value: Any): String = value match {
-    case value: String => Base64.getEncoder().encode(value.getBytes("utf-8"))
+    case value: String => Base64.getEncoder().encode(value.replaceAll("[\\r\\n]+", "").getBytes("utf-8"))
     case value: Array[Byte] => Base64.getEncoder().encode(value)
     case _ => ""
   }
-
-    //Base64.getEncoder().encode(value.getBytes("utf-8"))//.split("[\\r\\n]+").mkString()
 
 }
 
 object base64decode extends (Any => String) {
 
-  //performance bottleneck
   import com.github.jancajthaml.base64.Base64
 
   def apply(value: Any): String = value match {
-    case value: String => Base64.getDecoder().decode(value.getBytes("utf-8"))
-    case value: Array[Byte] => Base64.getDecoder().decode(value)
+    case value: String => Base64.getDecoder().decode(value.getBytes("utf-8")).replaceAll("[\\r\\n]+", "")
+    case value: Array[Byte] => Base64.getDecoder().decode(value).replaceAll("[\\r\\n]+", "")
     case _ => ""
   }
 
 }
 
 object getAlg extends ((Option[Any], Array[Byte]) => Option[javax.crypto.Mac]) {
-
-  //import javax.crypto.Mac
-  //import javax.crypto.spec.SecretKeySpec
 
   def apply(name: Option[Any], key: Array[Byte]): Option[javax.crypto.Mac] = name match {
     case Some("HS256") => { //-> HmacSHA256
@@ -85,7 +99,7 @@ object getAlg extends ((Option[Any], Array[Byte]) => Option[javax.crypto.Mac]) {
       x.init(new javax.crypto.spec.SecretKeySpec(key, "SHA512withECDSA"))
       Some(x)
     }
-    case x => None //throw new DeserializationException(s"Unsupported algorithm ${x}")
+    case x => None
   }
 
 }
