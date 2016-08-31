@@ -10,11 +10,11 @@ object jsonloads extends (String => Map[String, Any]) {
   
   def apply(value: String): Map[String, String] = {
     var loaded = Map[String, String]()
-    value.replaceAll("[\\r\\n{}]+", "").trim().split(",").foreach(x => x.split("\":") match {
+    value.replaceAll("""[\r\n{}]+""", "").trim().split(",").foreach(x => x.split("\":") match {
       case Array(x: String, y: String) => {
         loaded += (
-          x.trim().replaceAll("^.", "") ->
-          y.trim().replaceAll("^[\\\"\\\']+|[\\\"\\\']+$", "")
+          x.replaceAll("""^[\"\' \t]+||^[ \t]+$""", "") ->
+          y.replaceAll("""^[\"\' \t]+|[\"\' \t]+$""", "")
         )
       }
     })

@@ -53,7 +53,7 @@ object Main extends App {
       times :::= List(System.nanoTime - now)
     }
     val result = times.sum / n
-    println((result / 1e6) + "ms")
+    println((result / 1e3) + "ys")
     result
   }
 
@@ -65,7 +65,7 @@ object Main extends App {
   for (a <- 1 to 10) {
     time({
       encode(Map("foo" -> "bar", "XXX" -> "XXX"), "HS256")
-    }, 5000)
+    }, 10000)
   }
 
   println("[i] decoding performance")
@@ -73,7 +73,7 @@ object Main extends App {
   for (b <- 1 to 10) {
     time({
       decode(sampleJWT)
-    }, 5000)
+    }, 10000)
   }
 
   println("[i] dumps performance")
@@ -81,7 +81,7 @@ object Main extends App {
   for (c <- 1 to 10) {
     time({
       jsondumps(Map("x" -> "y"))
-    }, 5000)
+    }, 10000)
   }
 
   println("[i] loads performance")
@@ -89,20 +89,19 @@ object Main extends App {
   for (d <- 1 to 10) {
     time({
       jsonloads(sampleJSON)
-    }, 5000)
+    }, 10000)
   }
 
   println("[i] sanity check")
-  println(
-    decode(
-      encode(
-        Map(
-          "foo" -> "fooValue",
-          "bar" -> "barValue"
-        ),
-        "HS256"
-      )
-    )
+  val token = encode(
+    Map(
+      "foo" -> "fooValue",
+      "bar" -> "barValue"
+    ),
+    "HS256"
   )
+  println(token)
+  println(decode(token))
+  //result foreach (x => println ("%s -> %s".format(x._1, x._2)))
 
 }
