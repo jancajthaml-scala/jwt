@@ -2,12 +2,13 @@ package com.github.jancajthaml.jwt
 
 object jsondumps extends (Map[String, Any] => String) {
   
-  def apply(value: Map[String, Any]): String = "{" + value.map(x => {("\"" + x._1 + "\":\"" + x._2 + "\"")}).mkString("",", ","") + "}"
-
+  def apply(value: Map[String, Any]): String = {
+    "{" + value.map(x => {("\"" + x._1 + "\":\"" + x._2 + "\"")}).mkString("",", ","") + "}"
+  }
 }
 
 object jsonloads extends (String => Map[String, Any]) {
-  
+
   def apply(value: String): Map[String, String] = {
     var loaded = Map[String, String]()
     value.replaceAll("""[\r\n{}]+""", "").trim().split(",").foreach(x => x.split("\":") match {
@@ -20,7 +21,6 @@ object jsonloads extends (String => Map[String, Any]) {
     })
     loaded
   }
-
 }
 
 
@@ -33,7 +33,6 @@ object base64encode extends (Any => String) {
     case value: Array[Byte] => Base64.getEncoder().encode(value)
     case _ => ""
   }
-
 }
 
 object base64decode extends (Any => String) {
@@ -45,7 +44,6 @@ object base64decode extends (Any => String) {
     case value: Array[Byte] => Base64.getDecoder().decode(value).replaceAll("[\\r\\n]+", "")
     case _ => ""
   }
-
 }
 
 object getAlg extends ((Option[Any], Array[Byte]) => Option[javax.crypto.Mac]) {
@@ -104,5 +102,4 @@ object getAlg extends ((Option[Any], Array[Byte]) => Option[javax.crypto.Mac]) {
     }
     case x => None
   }
-
 }
