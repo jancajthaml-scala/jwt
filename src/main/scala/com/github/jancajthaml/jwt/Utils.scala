@@ -3,6 +3,9 @@ package com.github.jancajthaml.jwt
 object jsondumps extends (Map[String, Any] => String) {
   
   def apply(value: Map[String, Any]): String = {
+    //if x._2 is instance of Map go to recursion
+    //if x._2 is instance of Number, true, false, Nil|None dont wrap in quotes
+    //if x._2 is instance of List then ignore (wont support)
     "{" + value.map(x => {("\"" + x._1 + "\":\"" + x._2 + "\"")}).mkString("",", ","") + "}"
   }
 }
