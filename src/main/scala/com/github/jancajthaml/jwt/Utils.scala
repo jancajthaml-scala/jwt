@@ -3,12 +3,12 @@ package com.github.jancajthaml.jwt
 object jsondumps extends (Map[String, Any] => String) {
   
   def apply(value: Map[String, Any]): String = {
+    val q = '"'
     "{" + value.map(x => {
       x._2 match {
-        case d: Number => ("\"" + x._1 + "\":" + d)
-        case b: Boolean => ("\"" + x._1 + "\":" + (if (b) "true" else "false"))
-        case null => ("\"" + x._1 + "\":null")
-        case _ => ("\"" + x._1 + "\":\"" + x._2 + "\"")
+        case null => s"$q${x._1}$q:null"
+        case d: String => s"$q${x._1}$q:$q${x._2}$q"
+        case c => s"$q${x._1}$q:$c"
       }
     }).mkString("",", ","") + "}"
   }
@@ -20,24 +20,34 @@ object jsonloads extends (String => Map[String, Any]) {
     //@todo check string contains nested json (more than one "{" or "}")
     //because we do not support nested json strucures @todo TBD
     var loaded = Map[String, Any]()
+    //@todo slows down parsing 4 times, need better regex in better times
     value.replaceAll("""[\r\n{}]+""", "").trim().split(",").foreach(x => x.split("\":") match {
       case Array(x: String, y: Any) => {
+        //@todo these two regexes are bad, should be done on value beforehand
         val pivot = y.replaceAll("""^[ \t]+|[ \t]+$""", "")
         val key = x.replaceAll("""^[\"\' \t]+||^[ \t]+$""", "")
-        if (pivot(0) == '"') {
-          loaded += (key -> pivot.drop(1).dropRight(1))
-        } else {
-          pivot match {
-            case "true" => {
-              loaded += (key -> true)
-            }
-            case "false" => {
-              loaded += (key -> false)
-            }
-            case _ => {
-              loaded += (key -> (try { Some(pivot.toFloat) } catch { case e: NumberFormatException => None }).getOrElse(null))
-            }
+        /*
+          (t|f) => maybe boolean
+          (digit) => maybe number
+          (") => definitely string
+          (n) => null
+        */
+        pivot(0) match {
+          case 't' => {
+            loaded += (key -> true)
           }
+          case 'f' => {
+            loaded += (key -> false)
+          }
+          case 'n' => {
+            loaded += (key -> null)
+          }
+          case '"' => {
+            loaded += (key -> pivot.drop(1).dropRight(1))
+          }
+          case x => if (x.isDigit) {
+            loaded += (key -> pivot.toFloat)
+          } 
         }
       }
     })
