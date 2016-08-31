@@ -118,7 +118,6 @@ object Main extends App {
   println(s"JWT: $token")  
   println(s"decoded payload: $decoded")
 
-  //import scala.reflect.ClassTag
   def f[T](v: T) = v match {
     case _: Number => "Number"
     case _: Boolean => "Boolean"
@@ -129,7 +128,6 @@ object Main extends App {
 
   for ((k,v) <- decoded) {
     println(s"|$k| -> |$v| [${f(v)}]")
-    //printf("key: %s, value: %s\n", k, v)
   }
 
 
