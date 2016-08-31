@@ -9,13 +9,13 @@ object jsondumps extends (Map[String, Any] => String) {
 
 object jsonloads extends (String => Map[String, Any]) {
 
-  def apply(value: String): Map[String, String] = {
-    var loaded = Map[String, String]()
+  def apply(value: String): Map[String, Any] = {
+    var loaded = Map[String, Any]()
     value.replaceAll("""[\r\n{}]+""", "").trim().split(",").foreach(x => x.split("\":") match {
       case Array(x: String, y: String) => {
         loaded += (
           x.replaceAll("""^[\"\' \t]+||^[ \t]+$""", "") ->
-          y.replaceAll("""^[\"\' \t]+|[\"\' \t]+$""", "")
+          y.replaceAll("""^[\"\' \t]+|[\"\' \t]+$""", "") //add check to define more rigerous type (false, true, null, number...)
         )
       }
     })
