@@ -41,7 +41,7 @@ object decode extends ((String, String) => Map[String, Any]) {
 
 object Main extends App {
 
-  val secretKey: String = "secret"
+  val secretKey: String = "secretKey"
   val algorithm: String = "HS256"
 
   ////
@@ -109,6 +109,10 @@ object Main extends App {
   )
   println(s"original payload: $sampleMap")
   println(s"JWT: $token")
+  //should be
+  //eyJhbGciOiJIUzI1NiIsICJ0eXAiOiJKV1QifQ.eyJmb28iOiJmb29WYWx1ZSIsICJiYXIiOiJiYXJWYWx1ZSJ9.NT8erRnHJE7RPsHHLBIBlaxSHpMH5FKZmbNg0gGoisA
+  //actually is
+  //eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJmb28iOiJmb29WYWx1ZSIsImJhciI6ImJhclZhbHVlIn0.EvgrjRi5Dmo2zEZkhbd3XLh0sf1YoH55jRFLXo3RGac
   println(s"decoded payload: ${decode(token, secretKey)}")
 
 }

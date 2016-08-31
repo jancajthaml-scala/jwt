@@ -3,7 +3,14 @@ package com.github.jancajthaml.base64;
 public class Base64 {
 
     private static final char[] toBase64URL = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_".toCharArray();
-    private static final int[] fromBase64URL = { -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, 62, -1, -1, 52, 53, 54, 55, 56, 57, 58, 59, 60, 61, -1, -1, -1, 0, -1, -1, -1, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, -1, -1, -1, -1, 63, -1, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1 };
+    private static final int[] fromBase64URL = new int[256];
+    static {
+        java.util.Arrays.fill(fromBase64URL, -1);
+        for (int i = 0, iS = toBase64URL.length; i < iS; i++) {
+            fromBase64URL[toBase64URL[i]] = i;
+        }
+        fromBase64URL['='] = 0;
+    }
 
     private Base64() {}
 
@@ -20,7 +27,7 @@ public class Base64 {
             if (sLen == 0) {
                 return "";
             } else {
-                int eLen = (sLen / 3) * 3;
+                int eLen = sLen / 3 * 3;
                 int cCnt = ((sLen - 1) / 3 + 1) << 2;
                 int dLen = cCnt;
                 byte[] dest = new byte[dLen];
@@ -39,11 +46,10 @@ public class Base64 {
                     int i = ((src[eLen] & 0xff) << 10) | (left == 2 ? ((src[sLen - 1] & 0xff) << 2) : 0);
                     dest[dLen - 4] = (byte) toBase64URL[i >> 12];
                     dest[dLen - 3] = (byte) toBase64URL[(i >>> 6) & 0x3f];
-                    if (left == 2) {
-                        dest[dLen - 2] = (byte) toBase64URL[i & 0x3f];
-                    }
+                    dest[dLen - 2] = left == 2 ? (byte) toBase64URL[i & 0x3f] : (byte) '=';
+                    dest[dLen - 1] = '=';
                 }
-                return new String(dest, 0, 0, dest.length);
+                return new String(dest, 0, 0, dest.length).replaceAll("=", "");
             }
         }
 
