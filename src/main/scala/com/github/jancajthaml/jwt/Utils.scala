@@ -15,6 +15,7 @@ object jsonloads extends (String => Map[String, Any]) {
       case Array(x: String, y: String) => {
         loaded += (
           x.replaceAll("""^[\"\' \t]+||^[ \t]+$""", "") ->
+          //if replaced y == "y" then it was a string, otherwise post-process
           y.replaceAll("""^[\"\' \t]+|[\"\' \t]+$""", "") //add check to define more rigerous type (false, true, null, number...)
         )
       }
@@ -22,7 +23,6 @@ object jsonloads extends (String => Map[String, Any]) {
     loaded
   }
 }
-
 
 object base64encode extends (Any => String) {
 
