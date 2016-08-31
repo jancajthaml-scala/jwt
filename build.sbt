@@ -8,6 +8,8 @@ description := "JSON Web Token issuer and validator"
 
 scalaVersion in Global := "2.11.8"
 
+//export JAVA_OPTS="-Xmx256M -Xms32M -Xprof"
+
 scalacOptions in Global ++= Seq(
   "-encoding", "UTF-8",
   "-unchecked",
@@ -15,6 +17,7 @@ scalacOptions in Global ++= Seq(
   "-feature",
   "-Xfatal-warnings",
   "-Xlint",
+  //"-Xprof",
   "-Yrangepos",
   "-language:postfixOps")
 

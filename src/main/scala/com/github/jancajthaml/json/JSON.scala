@@ -11,7 +11,7 @@ private[jancajthaml] object JSON extends Parser {
     var x = Map[String, Any]()
   
     if (input.forall { 
-      case (key : String, value : Any) =>
+      case (key: String, value: Any) =>
         x += (key -> value)
         true
       case _ => false
