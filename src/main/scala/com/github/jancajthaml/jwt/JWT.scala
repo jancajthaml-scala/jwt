@@ -16,15 +16,13 @@ object Main extends App {
       case x => throw new DeserializationException(s"Invalid type for JWT decoding ${x}")
     }
 
-    val mac: Mac = getAlg(header.get("alg"), secretKey.getBytes(charset)) match {
-      case None => throw new DeserializationException(s"Unsupported algorithm")
-      case Some(x) => x
-    }
-
     val signature = chunks(2).getBytes(charset)
-    val calculatedSignature: Array[Byte] = base64encode(
-      mac.doFinal((chunks(0) + ('.' +: chunks(1))).getBytes(charset))
-    ).getBytes(charset)
+    val calculatedSignature: Array[Byte] = (getAlg(header.get("alg"), secretKey.getBytes(charset)) match {
+      case None => throw new DeserializationException(s"Unsupported algorithm")
+      case Some(x) => base64encode(
+        x.doFinal((chunks(0) + ('.' +: chunks(1))).getBytes(charset))
+      ).getBytes(charset)
+    })
 
     (calculatedSignature.length == signature.length match {
       case true => if ((signature zip calculatedSignature).foldLeft (0) {(r, ab) => r + (ab._1 ^ ab._2)} == 0) true
@@ -34,22 +32,15 @@ object Main extends App {
     jsonloads(base64decode(chunks(1)))
   }
 
-  def encode(payload: Map[String, Any], alg: String) = {
-    val header: Map[String, String] = Map("typ" -> "JWT", "alg" -> alg)
-
-    val headerFinal: String = base64encode(jsondumps(header))
-    val payloadFinal: String = base64encode(jsondumps(payload))
-
-    val mac: Mac = getAlg(Option(alg), secretKey.getBytes(charset)) match {
-      case None => throw new DeserializationException(s"Unsupported algorithm")
-      case Some(x) => x
-    }
-
-    val signature: String = base64encode(
-      mac.doFinal((headerFinal + ('.' +: payloadFinal)).getBytes(charset))
-    )
-
-    s"$headerFinal.$payloadFinal.$signature"
+  def encode(body: Map[String, Any], alg: String) = {
+    val header: String = base64encode(jsondumps(Map("typ" -> "JWT", "alg" -> alg)))
+    val payload: String = base64encode(jsondumps(body))
+    (header + ('.' +: payload) + ('.' +: (
+      getAlg(Option(alg), secretKey.getBytes(charset)) match {
+        case None => throw new DeserializationException(s"Unsupported algorithm")
+        case Some(x) => base64encode(x.doFinal((header + ('.' +: payload)).getBytes(charset)))
+      }
+    )))
   }
 
   ////

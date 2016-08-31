@@ -12,7 +12,10 @@ object jsonloads extends (String => Map[String, Any]) {
     var loaded = Map[String, String]()
     value.replaceAll("[\\r\\n{}]+", "").trim().split(",").foreach(x => x.split("\":") match {
       case Array(x: String, y: String) => {
-        loaded += (x.trim().replaceAll("^.", "") -> y.trim().replaceAll("^[\\\"\\\']+|[\\\"\\\']+$", ""))
+        loaded += (
+          x.trim().replaceAll("^.", "") ->
+          y.trim().replaceAll("^[\\\"\\\']+|[\\\"\\\']+$", "")
+        )
       }
     })
     loaded
