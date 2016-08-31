@@ -5,12 +5,13 @@ object jsondumps extends (Map[String, Any] => String) {
   def apply(value: Map[String, Any]): String = {
     val q = '"'
     "{" + value.map(x => {
+      //perf problem in string concat maybe?
       x._2 match {
         case null => s"$q${x._1}$q:null"
         case d: String => s"$q${x._1}$q:$q${x._2}$q"
         case c => s"$q${x._1}$q:$c"
       }
-    }).mkString("",", ","") + "}"
+    }).mkString("",", ","") + "}" //perf problem at this line
   }
 }
 
@@ -27,12 +28,14 @@ object jsonloads extends (String => Map[String, Any]) {
         val pivot = y.replaceAll("""^[ \t]+|[ \t]+$""", "")
         val key = x.replaceAll("""^[\"\' \t]+||^[ \t]+$""", "")
         /*
-          (t|f) => maybe boolean
-          (digit) => maybe number
+          (t|f) => boolean (true|false)
+          (digit) => possbile number
           (") => definitely string
           (n) => null
+          (u) => skip (undefined ... no key set)
         */
         pivot(0) match {
+          //perf problem in map mutability and non recursion maybe
           case 't' => {
             loaded += (key -> true)
           }
