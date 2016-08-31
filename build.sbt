@@ -18,10 +18,6 @@ scalacOptions in Global ++= Seq(
   "-Yrangepos",
   "-language:postfixOps")
 
-javacOptions ++= Seq(
-  "-encoding", "UTF-8"
-)
-
 lazy val jwt = project.in(file(".")).settings(
   name := "JWT test",
   mainClass in Compile := Some("com.github.jancajthaml.jwt.Main")

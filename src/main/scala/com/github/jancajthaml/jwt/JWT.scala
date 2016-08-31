@@ -59,7 +59,12 @@ object Main extends App {
   }
 
   val sampleJWT: String = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiYWRtaW4iOnRydWV9.TJVA95OrM7E2cBab30RMHrHDcEfxjoYZgeFONFh7HgQ"
-  val sampleMap: Map[String, Any] = Map("foo" -> "fooValue", "bar" -> "barValue")
+  val sampleMap: Map[String, Any] = Map(
+    "stringKey" -> "this is a string with spaces",
+    "floatKey" -> Float.MaxValue,
+    "boolKey" -> true,
+    "nullKey" -> null
+  )
   val sampleJSON: String = jsondumps(sampleMap)
 
   println("[i] encoding time (average)")
@@ -107,8 +112,25 @@ object Main extends App {
     algorithm,
     secretKey
   )
+  val decoded = decode(token, secretKey)
+
   println(s"original payload: $sampleMap")
   println(s"JWT: $token")  
-  println(s"decoded payload: ${decode(token, secretKey)}")
+  println(s"decoded payload: $decoded")
+
+  //import scala.reflect.ClassTag
+  def f[T](v: T) = v match {
+    case _: Number => "Number"
+    case _: Boolean => "Boolean"
+    case _: String => "String"
+    case null => "null"
+    case _ => "Unknown"
+  }
+
+  for ((k,v) <- decoded) {
+    println(s"|$k| -> |$v| [${f(v)}]")
+    //printf("key: %s, value: %s\n", k, v)
+  }
+
 
 }

@@ -3,24 +3,42 @@ package com.github.jancajthaml.jwt
 object jsondumps extends (Map[String, Any] => String) {
   
   def apply(value: Map[String, Any]): String = {
-    //if x._2 is instance of Map go to recursion
-    //if x._2 is instance of Number, true, false, Nil|None dont wrap in quotes
-    //if x._2 is instance of List then ignore (wont support)
-    "{" + value.map(x => {("\"" + x._1 + "\":\"" + x._2 + "\"")}).mkString("",", ","") + "}"
+    "{" + value.map(x => {
+      x._2 match {
+        case d: Number => ("\"" + x._1 + "\":" + d)
+        case b: Boolean => ("\"" + x._1 + "\":" + (if (b) "true" else "false"))
+        case null => ("\"" + x._1 + "\":null")
+        case _ => ("\"" + x._1 + "\":\"" + x._2 + "\"")
+      }
+    }).mkString("",", ","") + "}"
   }
 }
 
 object jsonloads extends (String => Map[String, Any]) {
 
   def apply(value: String): Map[String, Any] = {
+    //@todo check string contains nested json (more than one "{" or "}")
+    //because we do not support nested json strucures @todo TBD
     var loaded = Map[String, Any]()
     value.replaceAll("""[\r\n{}]+""", "").trim().split(",").foreach(x => x.split("\":") match {
-      case Array(x: String, y: String) => {
-        loaded += (
-          x.replaceAll("""^[\"\' \t]+||^[ \t]+$""", "") ->
-          //if replaced y == "y" then it was a string, otherwise post-process
-          y.replaceAll("""^[\"\' \t]+|[\"\' \t]+$""", "") //add check to define more rigerous type (false, true, null, number...)
-        )
+      case Array(x: String, y: Any) => {
+        val pivot = y.replaceAll("""^[ \t]+|[ \t]+$""", "")
+        val key = x.replaceAll("""^[\"\' \t]+||^[ \t]+$""", "")
+        if (pivot(0) == '"') {
+          loaded += (key -> pivot.drop(1).dropRight(1))
+        } else {
+          pivot match {
+            case "true" => {
+              loaded += (key -> true)
+            }
+            case "false" => {
+              loaded += (key -> false)
+            }
+            case _ => {
+              loaded += (key -> (try { Some(pivot.toFloat) } catch { case e: NumberFormatException => None }).getOrElse(null))
+            }
+          }
+        }
       }
     })
     loaded
