@@ -1,44 +1,46 @@
 package com.github.jancajthaml.jwt
 
-object encode extends ((Map[String, Any], String, String) => String) {
+import scala.util.{Try,Success,Failure}
 
-  def apply(body: Map[String, Any], alg: String, secret: String): String = {
+object encode extends ((Map[String, Any], String, String) => scala.util.Try[String]) {
+
+  def apply(body: Map[String, Any], alg: String, secret: String): scala.util.Try[String] = {
     //for rainbow table prevention, shuffle values in header from time to time
     val header: String = base64encode(jsondumps(Map("alg" -> alg, "typ" -> "JWT")))
     val payload: String = base64encode(jsondumps(body))
-    (header + ('.' +: payload) + ('.' +: (
-      getAlg(Option(alg), secret.getBytes("utf-8")) match {
-        case None => throw new DeserializationException(s"Unsupported algorithm")
-        case Some(x) => base64encode(x.doFinal((header + ('.' +: payload)).getBytes("utf-8")))
-      }
-    )))
+    val signature = getAlg(Option(alg), secret.getBytes("utf-8")) match {
+      case None => throw new Exception(s"Unsupported algorithm")
+      case Some(x) => base64encode(x.doFinal((header + ('.' +: payload)).getBytes("utf-8")))
+    }
+
+    Success(header + ('.' +: payload) + ('.' +: (signature)))
   }
 }
 
-object decode extends ((String, String) => Map[String, Any]) {
+object decode extends ((String, String) => scala.util.Try[Map[String, Any]]) {
 
-  def apply(token: String, secret: String): Map[String, Any] = {
+  def apply(token: String, secret: String): scala.util.Try[Map[String, Any]] = {
     val chunks: Array[String] = token.split('.')
     val header = jsonloads(base64decode(chunks(0)))
     header.get("typ") match {
       case Some("JWT") => {}
-      case x => throw new DeserializationException(s"Invalid type for JWT decoding ${x}")
+      case x => throw new Exception(s"Invalid type for JWT decoding ${x}")
     }
     val signature = chunks(2).getBytes("utf-8")
     val calculatedSignature: Array[Byte] = (getAlg(header.get("alg"), secret.getBytes("utf-8")) match {
-      case None => throw new DeserializationException(s"Unsupported algorithm")
+      case None => throw new Exception(s"Unsupported algorithm")
       case Some(x) => base64encode(
         x.doFinal((chunks(0) + ('.' +: chunks(1))).getBytes("utf-8"))
       ).getBytes("utf-8")
     })
     (calculatedSignature.length == signature.length match {
       case true => if ((signature zip calculatedSignature).foldLeft (0) {(r, ab) => r + (ab._1 ^ ab._2)} == 0) true
-      case _ => new DeserializationException(s"Invalid token, signature does not match")
+      case _ => throw new Exception(s"Invalid token, signature does not match")
     })
-    jsonloads(base64decode(chunks(1)))
+    Try(jsonloads(base64decode(chunks(1))))
   }
 }
-
+/*
 object Main extends App {
 
   val secretKey: String = "secretKey"
@@ -107,16 +109,24 @@ object Main extends App {
   }
 
   println("[i] sanity check")
-  val token = encode(
+  encode(
     sampleMap,
     algorithm,
     secretKey
-  )
-  val decoded = decode(token, secretKey)
+  ) match {
+    case Success(token) => {
+      println(s"original payload: $sampleMap")
+      println(s"JWT: $token")  
+      decode(token, secretKey) match {
+      case Success(decoded) => println(s"decoded payload: $decoded")
+      case Failure(f) => println(f)
+    }
+    }
+    case Failure(f) => println(f)
+  }
 
-  println(s"original payload: $sampleMap")
-  println(s"JWT: $token")  
-  println(s"decoded payload: $decoded")
+  
+  /*
 
   def f[T](v: T) = v match {
     case _: Number => "Number"
@@ -129,6 +139,7 @@ object Main extends App {
   for ((k,v) <- decoded) {
     println(s"|$k| -> |$v| [${f(v)}]")
   }
-
+*/
 
 }
+*/

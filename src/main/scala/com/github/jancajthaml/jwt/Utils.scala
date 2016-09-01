@@ -7,8 +7,8 @@ object jsondumps extends (Map[String, Any] => String) {
     "{" + value.map(x => {
       //perf problem in string concat maybe?
       x._2 match {
-        case null => s"$q${x._1}$q:null"
         case d: String => s"$q${x._1}$q:$q${x._2}$q"
+        case null => s"$q${x._1}$q:null"
         case c => s"$q${x._1}$q:$c"
       }
     }).mkString("",", ","") + "}" //perf problem at this line
@@ -36,6 +36,9 @@ object jsonloads extends (String => Map[String, Any]) {
         */
         pivot(0) match {
           //perf problem in map mutability and non recursion maybe
+          case '"' => {
+            loaded += (key -> pivot.drop(1).dropRight(1))
+          }
           case 't' => {
             loaded += (key -> true)
           }
@@ -44,9 +47,6 @@ object jsonloads extends (String => Map[String, Any]) {
           }
           case 'n' => {
             loaded += (key -> null)
-          }
-          case '"' => {
-            loaded += (key -> pivot.drop(1).dropRight(1))
           }
           case x => if (x.isDigit) {
             loaded += (key -> pivot.toFloat)

@@ -18,7 +18,26 @@ scalacOptions in Global ++= Seq(
   "-Yrangepos",
   "-language:postfixOps")
 
+/*
 lazy val jwt = project.in(file(".")).settings(
   name := "JWT test",
   mainClass in Compile := Some("com.github.jancajthaml.jwt.Main")
+)*/
+
+lazy val test = Project(
+  "test",
+  file("."),
+  settings = Defaults.coreDefaultSettings ++ Seq(
+    publishArtifact := false,
+    resolvers ++= Seq(
+      "Sonatype OSS Snapshots" at "https://oss.sonatype.org/content/repositories/snapshots",
+      "Sonatype OSS Releases" at "https://oss.sonatype.org/content/repositories/releases"
+    ),
+    libraryDependencies ++= Seq(
+      "com.storm-enroute" %% "scalameter" % "0.8-SNAPSHOT" % "test"
+    ),
+    testFrameworks += new TestFramework("org.scalameter.ScalaMeterFramework"),
+    parallelExecution in Test := false,
+    logBuffered := false
+  )
 )
