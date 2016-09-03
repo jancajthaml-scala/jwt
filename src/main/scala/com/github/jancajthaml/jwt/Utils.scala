@@ -5,16 +5,16 @@ object jsondumps extends (Map[String, Any] => String) {
   def apply(value: Map[String, Any]): String = {
     //@todo string construction hogs this, should refactor to
     //recursion returning chunks of Array[Byte] in sudo parallel
-    val q = '"'
-    "{" + value.map(x => {
-      //perf problem in string concat maybe?
-      x._2 match {
-        case d: String => s"$q${x._1}$q:$q${x._2}$q"
-        case null => s"$q${x._1}$q:null"
-        case c => s"$q${x._1}$q:$c"
-      }
-    //better string buffering
-    }).mkString("",",","") + "}" //perf problem at this line
+    var vector: Vector[Any] = Vector[Any]()
+    var nothing: Vector[Any] = Vector.empty :+ ":null,"
+
+    value.map(x => x._2 match {
+      case d: String => vector ++= ('"' +: x._1.asInstanceOf[String] +: '"' +: ':' +: '"' +: x._2.asInstanceOf[String] :+ "\",")
+      case null => vector = (vector ++ ('"' +: x._1.asInstanceOf[String] :+ '"') ++ nothing)
+      case c => vector ++= ('"' +: x._1.asInstanceOf[String] +: '"' +: ':' +: x._2.toString :+ ',')
+    })
+
+    '{' + vector.dropRight(1).mkString + '}'
   }
 }
 
@@ -24,6 +24,8 @@ object jsonloads extends (String => Map[String, Any]) {
     //@todo check string contains nested json (more than one "{" or "}")
     //because we do not support nested json strucures @todo TBD
     var loaded = Map[String, Any]()
+
+    //@todo declaration of this loopuk table in function wastes perf, move outside
     /*
       (t|f) => boolean (true|false)
       (0|1|2|3|4|5|6|7|8|9) => integral number (decimals unsuported)
@@ -37,7 +39,7 @@ object jsonloads extends (String => Map[String, Any]) {
       't' -> ((k:String, v:String, r:Map[String, Any]) => r + (k -> true)),
       'f' -> ((k:String, v:String, r:Map[String, Any]) => r + (k -> false)),
       'n' -> ((k:String, v:String, r:Map[String, Any]) => r + (k -> null)),
-      '0' -> ((k:String, v:String, r:Map[String, Any]) => r + (k -> v.toInt)),
+      '0' -> ((k:String, v:String, r:Map[String, Any]) => r + (k -> 0)),
       '1' -> ((k:String, v:String, r:Map[String, Any]) => r + (k -> v.toInt)),
       '2' -> ((k:String, v:String, r:Map[String, Any]) => r + (k -> v.toInt)),
       '3' -> ((k:String, v:String, r:Map[String, Any]) => r + (k -> v.toInt)),
@@ -49,6 +51,7 @@ object jsonloads extends (String => Map[String, Any]) {
       '9' -> ((k:String, v:String, r:Map[String, Any]) => r + (k -> v.toInt))
     )
 
+    //@todo declaration of this function in this function wastes perf, move outside
     val pipe = ((k:String, v:String, r:Map[String, Any]) => r)
 
     //@todo slows down parsing 4 times, need better regex in better times
