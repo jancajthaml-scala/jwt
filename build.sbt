@@ -31,13 +31,17 @@ lazy val test = Project(
     publishArtifact := false,
     resolvers ++= Seq(
       "Sonatype OSS Snapshots" at "https://oss.sonatype.org/content/repositories/snapshots",
-      "Sonatype OSS Releases" at "https://oss.sonatype.org/content/repositories/releases"
+      "Sonatype OSS Releases" at "https://oss.sonatype.org/content/repositories/releases",
+      "Artima Maven Repository" at "http://repo.artima.com/releases"
     ),
     libraryDependencies ++= Seq(
-      "com.storm-enroute" %% "scalameter" % "0.8-SNAPSHOT" % "test"
+      "com.storm-enroute" %% "scalameter" % "0.8-SNAPSHOT" % "test",
+      "org.scalactic" %% "scalactic" % "3.0.0",
+      "org.scalatest" %% "scalatest" % "3.0.0" % "test"
     ),
     testFrameworks += new TestFramework("org.scalameter.ScalaMeterFramework"),
     parallelExecution in Test := false,
     logBuffered := false
   )
-)
+)//.addSbtPlugin("com.artima.supersafe" % "sbtplugin" % "1.1.0")
+

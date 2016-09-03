@@ -19,8 +19,10 @@ object Regression extends Bench[Double] {
   
   /* inputs */
 
-  val sizes = Gen.range("size")(0, 10000, 500)
-  val maps = for (sz <- sizes) yield Map((0 until sz).toList map { a => s"$a" -> a }: _*)
+  val numberOfKeys = Gen.range("numberOfKeys")(0, 30000, 3000)
+  //val numberOfKeys = Gen.range("numberOfKeys")(0, 30, 10)
+  val maps = for (sz <- numberOfKeys) yield Map((0 until sz).toList map { a => s"$a" -> a }: _*)
+  val jsons = for (sz <- numberOfKeys) yield jsondumps(Map((0 until sz).toList map { a => s"$a" -> s"$a" }: _*))
   
   /* tests */
 
@@ -28,6 +30,10 @@ object Regression extends Bench[Double] {
     measure method "jsondumps" in {
       using(maps) in jsondumps
     }
+    measure method "jsonloads" in {
+      using(jsons) in { x => jsonloads(x) }
+    }
+  
   }
   
 }

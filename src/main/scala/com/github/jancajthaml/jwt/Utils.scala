@@ -11,7 +11,7 @@ object jsondumps extends (Map[String, Any] => String) {
         case null => s"$q${x._1}$q:null"
         case c => s"$q${x._1}$q:$c"
       }
-    }).mkString("",", ","") + "}" //perf problem at this line
+    }).mkString("",",","") + "}" //perf problem at this line
   }
 }
 
@@ -21,38 +21,37 @@ object jsonloads extends (String => Map[String, Any]) {
     //@todo check string contains nested json (more than one "{" or "}")
     //because we do not support nested json strucures @todo TBD
     var loaded = Map[String, Any]()
+    /*
+      (t|f) => boolean (true|false)
+      (digit) => possbile number
+      (") => definitely string
+      (n) => null
+      (u) => skip (undefined ... no key set)
+    */
+    val char2fn = Map(
+      '"' -> ((k:String, v:String, r:Map[String, Any]) => r + (k -> v.drop(1).dropRight(1))),
+      't' -> ((k:String, v:String, r:Map[String, Any]) => r + (k -> true)),
+      'f' -> ((k:String, v:String, r:Map[String, Any]) => r + (k -> false)),
+      'n' -> ((k:String, v:String, r:Map[String, Any]) => r + (k -> null)),
+      '0' -> ((k:String, v:String, r:Map[String, Any]) => r + (k -> v.toInt)),
+      '1' -> ((k:String, v:String, r:Map[String, Any]) => r + (k -> v.toInt)),
+      '2' -> ((k:String, v:String, r:Map[String, Any]) => r + (k -> v.toInt)),
+      '3' -> ((k:String, v:String, r:Map[String, Any]) => r + (k -> v.toInt)),
+      '4' -> ((k:String, v:String, r:Map[String, Any]) => r + (k -> v.toInt)),
+      '5' -> ((k:String, v:String, r:Map[String, Any]) => r + (k -> v.toInt)),
+      '6' -> ((k:String, v:String, r:Map[String, Any]) => r + (k -> v.toInt)),
+      '7' -> ((k:String, v:String, r:Map[String, Any]) => r + (k -> v.toInt)),
+      '8' -> ((k:String, v:String, r:Map[String, Any]) => r + (k -> v.toInt)),
+      '9' -> ((k:String, v:String, r:Map[String, Any]) => r + (k -> v.toInt))
+    )
+
     //@todo slows down parsing 4 times, need better regex in better times
-    value.replaceAll("""[\r\n{}]+""", "").trim().split(",").foreach(x => x.split("\":") match {
-      case Array(x: String, y: Any) => {
-        //@todo these two regexes are bad, should be done on value beforehand
-        val pivot = y.replaceAll("""^[ \t]+|[ \t]+$""", "")
-        val key = x.replaceAll("""^[\"\' \t]+||^[ \t]+$""", "")
-        /*
-          (t|f) => boolean (true|false)
-          (digit) => possbile number
-          (") => definitely string
-          (n) => null
-          (u) => skip (undefined ... no key set)
-        */
-        pivot(0) match {
-          //perf problem in map mutability and non recursion maybe
-          case '"' => {
-            loaded += (key -> pivot.drop(1).dropRight(1))
-          }
-          case 't' => {
-            loaded += (key -> true)
-          }
-          case 'f' => {
-            loaded += (key -> false)
-          }
-          case 'n' => {
-            loaded += (key -> null)
-          }
-          case x => if (x.isDigit) {
-            loaded += (key -> pivot.toFloat)
-          } 
-        }
-      }
+    value.replaceAll("""[\r\n{}]+""", "").trim().split(",").filter(_.nonEmpty).map(x => {
+      val t = x.split("\":")
+      //@todo these two regexes are bad, should be done on value beforehand
+      val v = t(1).replaceAll("""^[ \t]+|[ \t]+$""", "")
+      val k = t(0).replaceAll("""^[\"\' \t]+|[\"\' \t]+$""", "")
+      loaded = char2fn.getOrElse(v(0), ((k:String, v:String, r:Map[String, Any]) => r))(k, v, loaded)
     })
     loaded
   }
