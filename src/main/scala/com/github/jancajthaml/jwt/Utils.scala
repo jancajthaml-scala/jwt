@@ -7,9 +7,10 @@ object jsondumps extends (Map[String, Any] => String) {
     //recursion returning chunks of Array[Byte] in sudo parallel
     var vector: Vector[Any] = Vector[Any]()
     var nothing: Vector[Any] = Vector.empty :+ ":null,"
+    var trail: Vector[Any] = Vector.empty :+ "\","
 
     value.map(x => x._2 match {
-      case d: String => vector ++= ('"' +: x._1.asInstanceOf[String] +: '"' +: ':' +: '"' +: x._2.asInstanceOf[String] :+ "\",")
+      case d: String => vector = (vector ++ ('"' +: x._1.asInstanceOf[String] +: '"' +: ':' +: '"' +: x._2.asInstanceOf[String]) ++ trail)
       case null => vector = (vector ++ ('"' +: x._1.asInstanceOf[String] :+ '"') ++ nothing)
       case c => vector ++= ('"' +: x._1.asInstanceOf[String] +: '"' +: ':' +: x._2.toString :+ ',')
     })
