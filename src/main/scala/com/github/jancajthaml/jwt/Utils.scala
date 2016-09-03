@@ -3,6 +3,8 @@ package com.github.jancajthaml.jwt
 object jsondumps extends (Map[String, Any] => String) {
   
   def apply(value: Map[String, Any]): String = {
+    //@todo string construction hogs this, should refactor to
+    //recursion returning chunks of Array[Byte] in sudo parallel
     val q = '"'
     "{" + value.map(x => {
       //perf problem in string concat maybe?
@@ -11,6 +13,7 @@ object jsondumps extends (Map[String, Any] => String) {
         case null => s"$q${x._1}$q:null"
         case c => s"$q${x._1}$q:$c"
       }
+    //better string buffering
     }).mkString("",",","") + "}" //perf problem at this line
   }
 }
@@ -23,10 +26,11 @@ object jsonloads extends (String => Map[String, Any]) {
     var loaded = Map[String, Any]()
     /*
       (t|f) => boolean (true|false)
-      (digit) => possbile number
-      (") => definitely string
+      (0|1|2|3|4|5|6|7|8|9) => integral number (decimals unsuported)
+      (") => string
       (n) => null
-      (u) => skip (undefined ... no key set)
+      (u) => undefined or unicode ... skip
+      (e) => decimal number sci notation ... skip
     */
     val char2fn = Map(
       '"' -> ((k:String, v:String, r:Map[String, Any]) => r + (k -> v.drop(1).dropRight(1))),
@@ -45,13 +49,15 @@ object jsonloads extends (String => Map[String, Any]) {
       '9' -> ((k:String, v:String, r:Map[String, Any]) => r + (k -> v.toInt))
     )
 
+    val pipe = ((k:String, v:String, r:Map[String, Any]) => r)
+
     //@todo slows down parsing 4 times, need better regex in better times
     value.replaceAll("""[\r\n{}]+""", "").trim().split(",").filter(_.nonEmpty).map(x => {
       val t = x.split("\":")
       //@todo these two regexes are bad, should be done on value beforehand
       val v = t(1).replaceAll("""^[ \t]+|[ \t]+$""", "")
       val k = t(0).replaceAll("""^[\"\' \t]+|[\"\' \t]+$""", "")
-      loaded = char2fn.getOrElse(v(0), ((k:String, v:String, r:Map[String, Any]) => r))(k, v, loaded)
+      loaded = char2fn.getOrElse(v(0), pipe)(k, v, loaded)
     })
     loaded
   }
