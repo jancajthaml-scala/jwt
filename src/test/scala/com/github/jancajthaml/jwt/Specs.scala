@@ -10,17 +10,15 @@ import scala.util.{Try,Success,Failure}
 
 class JSONSpecs extends FlatSpec with Matchers {
 
-  val secretKey: String = "secretKey"
+  val secret: String = "secret"
+
+  def decodeB64Native(x: String): String = new String(java.util.Base64.getDecoder().decode(x))
 
   "encode" should "have valid header" in {
     var parts = Array.empty[String]
     var token:String = ""
 
-    encode(
-      Map(),
-      "HS256",
-      secretKey
-    ) match {
+    encode(Map(), "HS256", secret) match {
       case Success(x) => {
         token = x
         parts = x.split("\\.")
@@ -31,7 +29,7 @@ class JSONSpecs extends FlatSpec with Matchers {
 
     parts should have size (3)
 
-    val header = jsonloads(new String(java.util.Base64.getDecoder().decode(parts(0))))
+    val header = jsonloads(decodeB64Native(parts(0)))
 
     header.keys should have size (2)
     header.getOrElse("alg", None) should !== (None)
@@ -44,11 +42,7 @@ class JSONSpecs extends FlatSpec with Matchers {
     var parts = Array.empty[String]
     var token:String = ""
 
-    encode(
-      Map(),
-      algorithm,
-      secretKey
-    ) match {
+    encode(Map(), algorithm, secret) match {
       case Success(x) => {
         token = x
         parts = x.split("\\.")
@@ -59,7 +53,7 @@ class JSONSpecs extends FlatSpec with Matchers {
 
     parts should have size (3)
 
-    val header = jsonloads(new String(java.util.Base64.getDecoder().decode(parts(0))))
+    val header = jsonloads(decodeB64Native(parts(0)))
 
     header.getOrElse("alg", None) should === (algorithm)
     
