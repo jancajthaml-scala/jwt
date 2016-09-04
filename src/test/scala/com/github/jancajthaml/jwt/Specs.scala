@@ -5,38 +5,64 @@ import com.github.jancajthaml.json.{jsondumps, jsonloads}
 import collection.mutable.Stack
 import org.scalatest._
 
+import java.util.Base64
+import scala.util.{Try,Success,Failure}
+
 class JSONSpecs extends FlatSpec with Matchers {
 
-  "jsondumps" should "serialize with type awareness" in {
-    val map = Map(
-      "A" -> 1,
-      "B" -> null,
-      "C" -> true,
-      "D" -> false,
-      "E" -> "e"
-    )
-    val json = jsondumps(map)
+  val secretKey: String = "secretKey"
 
-    json should startWith ("{")
-    json should endWith ("}")
+  "encode" should "have valid header" in {
+    var parts = Array.empty[String]
+    var token:String = ""
 
-    json should include ("\"A\":1")
-    json should include ("\"B\":null")
-    json should include ("\"C\":true")
-    json should include ("\"D\":false")
-    json should include ("\"E\":\"e\"")
+    encode(
+      Map(),
+      "HS256",
+      secretKey
+    ) match {
+      case Success(x) => {
+        token = x
+        parts = x.split("\\.")
+      }
+      case Failure(f) => {
+      }
+    }
+
+    parts should have size (3)
+
+    val header = jsonloads(new String(java.util.Base64.getDecoder().decode(parts(0))))
+
+    header.keys should have size (2)
+    header.getOrElse("alg", None) should !== (None)
+    header.getOrElse("typ", None) should === ("JWT")
+    
   }
 
-  "jsonloads" should "deserialize with type awareness" in {
-    val map = jsonloads("""{"E":"e","A":1,"B":null,"C":true,"D":false}""")
+  it should "support HS256 signature" in {
+    val algorithm: String = "HS256"
+    var parts = Array.empty[String]
+    var token:String = ""
 
-    map.keys should have size (5)
+    encode(
+      Map(),
+      algorithm,
+      secretKey
+    ) match {
+      case Success(x) => {
+        token = x
+        parts = x.split("\\.")
+      }
+      case Failure(f) => {
+      }
+    }
 
-    map.getOrElse("A", None) should === (1)
-    map.getOrElse("B", None) should === (null)
-    map.getOrElse("C", None) should === (true)
-    map.getOrElse("D", None) should === (false)
-    map.getOrElse("E", None) should === ("e")
+    parts should have size (3)
+
+    val header = jsonloads(new String(java.util.Base64.getDecoder().decode(parts(0))))
+
+    header.getOrElse("alg", None) should === (algorithm)
+    
   }
 
 }
