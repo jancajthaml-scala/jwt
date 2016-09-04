@@ -1,5 +1,7 @@
 package com.github.jancajthaml.jwt
 
+import com.github.jancajthaml.json.{jsondumps, jsonloads}
+
 import scala.util.{Try,Success,Failure}
 
 object encode extends ((Map[String, Any], String, String) => scala.util.Try[String]) {

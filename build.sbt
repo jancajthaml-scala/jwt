@@ -18,11 +18,7 @@ scalacOptions in Global ++= Seq(
   "-Yrangepos",
   "-language:postfixOps")
 
-/*
-lazy val jwt = project.in(file(".")).settings(
-  name := "JWT test",
-  mainClass in Compile := Some("com.github.jancajthaml.jwt.Main")
-)*/
+lazy val json = RootProject(uri("git://github.com/jancajthaml-scala/json.git#03a2dc9e102609afb541d91f83282cbe9714bd81"))
 
 lazy val test = Project(
   "test",
@@ -43,5 +39,5 @@ lazy val test = Project(
     parallelExecution in Test := false,
     logBuffered := false
   )
-)//.addSbtPlugin("com.artima.supersafe" % "sbtplugin" % "1.1.0")
+).dependsOn(json)
 

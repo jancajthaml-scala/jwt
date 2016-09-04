@@ -1,5 +1,7 @@
 package com.github.jancajthaml.jwt
 
+import com.github.jancajthaml.json.{jsondumps, jsonloads}
+
 import org.scalameter.api._
 import org.scalameter.picklers.Implicits._
 
@@ -19,8 +21,7 @@ object Regression extends Bench[Double] {
   
   /* inputs */
 
-  val numberOfKeys = Gen.range("numberOfKeys")(0, 30000, 3000)
-  //val numberOfKeys = Gen.range("numberOfKeys")(0, 30, 10)
+  val numberOfKeys = Gen.range("numberOfKeys")(0, 500, 50)
   val maps = for (sz <- numberOfKeys) yield Map((0 until sz).toList map { a => s"$a" -> a }: _*)
   val jsons = for (sz <- numberOfKeys) yield jsondumps(Map((0 until sz).toList map { a => s"$a" -> s"$a" }: _*))
   

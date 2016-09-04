@@ -1,5 +1,7 @@
 package com.github.jancajthaml.jwt
 
+import com.github.jancajthaml.json.{jsondumps, jsonloads}
+
 import collection.mutable.Stack
 import org.scalatest._
 
