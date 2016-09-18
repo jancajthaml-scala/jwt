@@ -34,6 +34,7 @@ object decode extends ((String, String) => scala.util.Try[Map[String, Any]]) {
     val header = jsonloads(base64decode(chunks(0)))
     header.get("typ") match {
       case Some("JWT") => {}
+      case Some("JWE") => throw new Exception("Nested encryption not supported, \"typ: JWE\"")
       case x => throw new Exception(s"Invalid type for JWT decoding ${x}")
     }
     val signature = chunks(2).getBytes("utf-8")
