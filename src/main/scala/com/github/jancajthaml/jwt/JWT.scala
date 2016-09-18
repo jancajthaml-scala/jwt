@@ -1,13 +1,15 @@
 package com.github.jancajthaml.jwt
 
+//@todo add copy function that just prolong issued at and expiration if present and
+//patches iss with this method if present
+
 object encode extends ((Map[String, Any], String, String) => scala.util.Try[String]) {
 
   def apply(body: Map[String, Any], alg: String, secret: String): scala.util.Try[String] = {
     scala.util.Try({
       val header: String = serialize(Map("alg" -> alg, "typ" -> "JWT"))
       val payload: String = serialize(Map("iat" -> now()) ++ body)
-      val signature = sign(header, payload, alg, secret)
-      header + ('.' +: payload) + ('.' +: (signature))
+      header + ('.' +: payload) + ('.' +: (sign(header, payload, alg, secret)))
     })
   }
 }
