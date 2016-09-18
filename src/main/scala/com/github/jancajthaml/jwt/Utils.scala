@@ -4,6 +4,7 @@ import com.github.jancajthaml.base64.Base64
 import com.github.jancajthaml.json.{jsondumps, jsonloads}
 
 object sign extends ((String, String, Any, String) => String) {
+
   def apply(header: String, payload: String, alg: Any, secret: String): String = alg match {
     case "HS256" | Some("HS256") => { //-> HmacSHA256
       val x = javax.crypto.Mac.getInstance("HmacSHA256")
@@ -60,16 +61,19 @@ object sign extends ((String, String, Any, String) => String) {
   }
 }
 
-object now extends (() => Int) {
-  def apply(): Int = (System.currentTimeMillis() / 1000).asInstanceOf[Int]
+object now extends (() => Long) {
+
+  def apply(): Long = (System.currentTimeMillis() / 1000).asInstanceOf[Long]
 }
 
-object serialize extends (Map[String,Any] => String) {
-  def apply(value: Map[String,Any]): String =
+object serialize extends (Map[String, Any] => String) {
+
+  def apply(value: Map[String, Any]): String =
     Base64.getEncoder().encode(jsondumps(value).getBytes("utf-8"))
 }
 
-object deserialize extends (String => Map[String,Any]) {
-  def apply(value: String): Map[String,Any] =
+object deserialize extends (String => Map[String, Any]) {
+
+  def apply(value: String): Map[String, Any] =
     jsonloads(Base64.getDecoder().decode(value.getBytes("utf-8")).replaceAll("[\\r\\n]+", ""))
 }

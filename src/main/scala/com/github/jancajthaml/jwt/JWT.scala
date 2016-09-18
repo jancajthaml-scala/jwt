@@ -20,16 +20,16 @@ object decode extends ((String, String) => scala.util.Try[Map[String, Any]]) {
 
   def apply(token: String, secret: String): scala.util.Try[Map[String, Any]] = {
     scala.util.Try({
-      val time: Int = now()
+      val time: Long = now()
       val chunks: Array[String] = token.split('.')
-      val header = deserialize(chunks(0))
+      val header: Map[String,Any] = deserialize(chunks(0))
       header.get("typ") match {
         case Some("JWT") => {}
         case Some("JWE") => throw new Exception("Nested encryption not supported, \"typ: JWE\"")
         case x => throw new Exception(s"Invalid type for JWT decoding ${x}")
       }
-      val signature = chunks(2).getBytes("utf-8")
-      val calculatedSignature = sign(chunks(0), chunks(1), header.get("alg"), secret)
+      val signature: Array[Byte] = chunks(2).getBytes("utf-8")
+      val calculatedSignature: Array[Byte] = sign(chunks(0), chunks(1), header.get("alg"), secret).getBytes("utf-8")
 
       calculatedSignature.length == signature.length match {
         case true => if ((signature zip calculatedSignature).foldLeft (0) {
@@ -37,25 +37,25 @@ object decode extends ((String, String) => scala.util.Try[Map[String, Any]]) {
         case _ => throw new Exception("Invalid token, signature does not match")
       }
 
-      val body = deserialize(chunks(1))
+      val body: Map[String,Any] = deserialize(chunks(1))
 
       body.get("iat") match {
         case None => {}
-        case x => if (x.get.asInstanceOf[Int] > time) {
+        case x => if (x.get.asInstanceOf[Long] > time) {
           throw new Exception("Token is issued at future (iat validation failed)")
         }
       }
 
       body.get("exp") match {
         case None => {}
-        case x => if (x.get.asInstanceOf[Int] < time) {
+        case x => if (x.get.asInstanceOf[Long] < time) {
           throw new Exception("Token is expired (exp validation failed)")
         }
       }
 
       body.get("nbf") match {
         case None => {}
-        case x => if (x.get.asInstanceOf[Int] > time) {
+        case x => if (x.get.asInstanceOf[Long] > time) {
           throw new Exception("Used too early (nbf validation failed)")
         }
       }
