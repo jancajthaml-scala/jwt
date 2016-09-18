@@ -29,102 +29,98 @@ class JSONSpecs extends FlatSpec with Matchers {
 
       }
       case Failure(f) => {
-        //var parts = Array.empty[String]
-        //var token:String = ""
+        false should === (true)
+        //@todo reject test now
       }
     }
 
   }
 
   it should "have valid payload" in {
-    var parts = Array.empty[String]
     val payload = Map(
       "x" -> "y"
     )
-    var token:String = ""
 
     encode(payload, "HS256", secret) match {
       case Success(x) => {
-        token = x
-        parts = x.split("\\.")
+        val token = x
+        val parts = x.split("\\.")
+
+        parts should have size (3)
+
+        val payloadDecoded = jsonloads(decodeB64Native(parts(1)))
+
+        payloadDecoded.keys should have size (payload.keys.size + 1)
+        payloadDecoded.getOrElse("x", None) should === ("y")
       }
       case Failure(f) => {
+        false should === (true)
         //@todo reject test now
       }
     }
-
-    parts should have size (3)
-
-    val payloadDecoded = jsonloads(decodeB64Native(parts(1)))
-
-    payloadDecoded.keys should have size (payload.keys.size + 1)
-    payloadDecoded.getOrElse("x", None) should === ("y")
   }
 
   "signature" should "support HS256" in {
     val algorithm: String = "HS256"
-    var parts = Array.empty[String]
-    var token:String = ""
 
     encode(Map(), algorithm, secret) match {
       case Success(x) => {
-        token = x
-        parts = x.split("\\.")
+        val token = x
+        val parts = x.split("\\.")
+
+        parts should have size (3)
+
+        val header = jsonloads(decodeB64Native(parts(0)))
+
+        header.getOrElse("alg", None) should === (algorithm)
       }
       case Failure(f) => {
+        false should === (true)
+        //@todo reject test now
       }
     }
-
-    parts should have size (3)
-
-    val header = jsonloads(decodeB64Native(parts(0)))
-
-    header.getOrElse("alg", None) should === (algorithm)
-    
   }
 
   it should "support HS384" in {
     val algorithm: String = "HS384"
-    var parts = Array.empty[String]
-    var token:String = ""
 
     encode(Map(), algorithm, secret) match {
       case Success(x) => {
-        token = x
-        parts = x.split("\\.")
+        val token = x
+        val parts = x.split("\\.")
+
+        parts should have size (3)
+
+        val header = jsonloads(decodeB64Native(parts(0)))
+
+        header.getOrElse("alg", None) should === (algorithm)
       }
       case Failure(f) => {
+        false should === (true)
+        //@todo reject test now
       }
-    }
-
-    parts should have size (3)
-
-    val header = jsonloads(decodeB64Native(parts(0)))
-
-    header.getOrElse("alg", None) should === (algorithm)
-    
+    }    
   }
 
   it should "support HS512" in {
     val algorithm: String = "HS512"
-    var parts = Array.empty[String]
-    var token:String = ""
 
     encode(Map(), algorithm, secret) match {
       case Success(x) => {
-        token = x
-        parts = x.split("\\.")
+        val token = x
+        val parts = x.split("\\.")
+
+        parts should have size (3)
+
+        val header = jsonloads(decodeB64Native(parts(0)))
+
+        header.getOrElse("alg", None) should === (algorithm)
       }
       case Failure(f) => {
+        false should === (true)
+        //@todo reject test now
       }
     }
-
-    parts should have size (3)
-
-    val header = jsonloads(decodeB64Native(parts(0)))
-
-    header.getOrElse("alg", None) should === (algorithm)
-    
   }
 
   //RS256
