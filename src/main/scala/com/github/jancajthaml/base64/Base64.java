@@ -6,7 +6,9 @@ public class Base64 {
     private static final int[] fromBase64URL = new int[256];
     static {
         java.util.Arrays.fill(fromBase64URL, -1);
-        for (int i = 0, iS = toBase64URL.length; i < iS; i++) {
+        int iS = 0;
+        int i = 0;
+        for (i = 0, iS = toBase64URL.length; i < iS; i++) {
             fromBase64URL[toBase64URL[i]] = i;
         }
         fromBase64URL['='] = 0;
@@ -20,7 +22,7 @@ public class Base64 {
 
         private Encoder() {}
 
-        static final Encoder instance = new Encoder();
+        private static final Encoder instance = new Encoder();
 
         public String encode(byte[] src) {
             int sLen = src != null ? src.length : 0;
@@ -32,7 +34,7 @@ public class Base64 {
                 int dLen = cCnt;
                 byte[] dest = new byte[dLen];
 
-                for (int s = 0, d = 0, cc = 0; s < eLen;) {
+                for (int s = 0, d = 0; s < eLen;) {
                     int i = (src[s++] & 0xff) << 16 | (src[s++] & 0xff) << 8 | (src[s++] & 0xff);
 
                     dest[d++] = (byte) toBase64URL[(i >>> 18) & 0x3f];
@@ -61,7 +63,7 @@ public class Base64 {
 
         private Decoder() {}
 
-        static final Decoder instance = new Decoder();
+        private static final Decoder instance = new Decoder();
 
         public String decode(byte[] src) {
             int sLen = src.length;

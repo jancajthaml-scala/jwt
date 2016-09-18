@@ -1,81 +1,75 @@
 package com.github.jancajthaml.jwt
 
-object base64encode extends (Any => String) {
+import com.github.jancajthaml.base64.Base64
+import com.github.jancajthaml.json.{jsondumps, jsonloads}
 
-  import com.github.jancajthaml.base64.Base64
-
-  def apply(value: Any): String = value match {
-    case value: String => Base64.getEncoder().encode(value.replaceAll("[\\r\\n]+", "").getBytes("utf-8"))
-    case value: Array[Byte] => Base64.getEncoder().encode(value)
-    case _ => ""
-  }
-}
-
-object base64decode extends (Any => String) {
-
-  import com.github.jancajthaml.base64.Base64
-
-  def apply(value: Any): String = value match {
-    case value: String => Base64.getDecoder().decode(value.getBytes("utf-8")).replaceAll("[\\r\\n]+", "")
-    case value: Array[Byte] => Base64.getDecoder().decode(value).replaceAll("[\\r\\n]+", "")
-    case _ => ""
-  }
-}
-
-object getAlg extends ((Option[Any], Array[Byte]) => Option[javax.crypto.Mac]) {
-
-  def apply(name: Option[Any], key: Array[Byte]): Option[javax.crypto.Mac] = name match {
-    case Some("HS256") => { //-> HmacSHA256
+object sign extends ((String, String, Any, String) => String) {
+  def apply(header: String, payload: String, alg: Any, secret: String): String = alg match {
+    case "HS256" | Some("HS256") => { //-> HmacSHA256
       val x = javax.crypto.Mac.getInstance("HmacSHA256")
-      x.init(new javax.crypto.spec.SecretKeySpec(key, "HmacSHA256"))
-      Some(x)
+      x.init(new javax.crypto.spec.SecretKeySpec(secret.getBytes("utf-8"), "HmacSHA256"))
+      Base64.getEncoder().encode(x.doFinal((header + ('.' +: payload)).getBytes("utf-8")))
     }
-    case Some("HS384") => { //-> HmacSHA384
+    case "HS384" | Some("HS384") => { //-> HmacSHA384
       val x = javax.crypto.Mac.getInstance("HmacSHA384")
-      x.init(new javax.crypto.spec.SecretKeySpec(key, "HmacSHA384"))
-      Some(x)
+      x.init(new javax.crypto.spec.SecretKeySpec(secret.getBytes("utf-8"), "HmacSHA384"))
+      Base64.getEncoder().encode(x.doFinal((header + ('.' +: payload)).getBytes("utf-8")))
     }
-    case Some("HS512") => { //-> HmacSHA512
+    case "HS512" | Some("HS512") => { //-> HmacSHA512
       val x = javax.crypto.Mac.getInstance("HmacSHA512")
-      x.init(new javax.crypto.spec.SecretKeySpec(key, "HmacSHA512"))
-      Some(x)
+      x.init(new javax.crypto.spec.SecretKeySpec(secret.getBytes("utf-8"), "HmacSHA512"))
+      Base64.getEncoder().encode(x.doFinal((header + ('.' +: payload)).getBytes("utf-8")))
     }
-    case Some("RS256") => { //-> SHA256withRSA
+    case "RS256" | Some("RS256") => { //-> SHA256withRSA
       //not available by default
       val x = javax.crypto.Mac.getInstance("SHA256withRSA")
-      x.init(new javax.crypto.spec.SecretKeySpec(key, "SHA256withRSA"))
-      Some(x)
+      x.init(new javax.crypto.spec.SecretKeySpec(secret.getBytes("utf-8"), "SHA256withRSA"))
+      Base64.getEncoder().encode(x.doFinal((header + ('.' +: payload)).getBytes("utf-8")))
     }
-    case Some("RS384") => { //-> SHA384withRSA
+    case "RS384" | Some("RS384") => { //-> SHA384withRSA
       //not available by default
       val x = javax.crypto.Mac.getInstance("SHA384withRSA")
-      x.init(new javax.crypto.spec.SecretKeySpec(key, "SHA384withRSA"))
-      Some(x)
+      x.init(new javax.crypto.spec.SecretKeySpec(secret.getBytes("utf-8"), "SHA384withRSA"))
+      Base64.getEncoder().encode(x.doFinal((header + ('.' +: payload)).getBytes("utf-8")))
     }
-    case Some("RS512") => { //-> SHA512withRSA
+    case "RS512" | Some("RS512") => { //-> SHA512withRSA
       //not available by default
       val x = javax.crypto.Mac.getInstance("SHA512withRSA")
-      x.init(new javax.crypto.spec.SecretKeySpec(key, "SHA512withRSA"))
-      Some(x)
+      x.init(new javax.crypto.spec.SecretKeySpec(secret.getBytes("utf-8"), "SHA512withRSA"))
+      Base64.getEncoder().encode(x.doFinal((header + ('.' +: payload)).getBytes("utf-8")))
     }
-    case Some("ES256") => { //-> SHA256withECDSA
+    case "ES256" | Some("ES256") => { //-> SHA256withECDSA
       //not available by default
       val x = javax.crypto.Mac.getInstance("SHA256withECDSA")
-      x.init(new javax.crypto.spec.SecretKeySpec(key, "SHA256withECDSA"))
-      Some(x)
+      x.init(new javax.crypto.spec.SecretKeySpec(secret.getBytes("utf-8"), "SHA256withECDSA"))
+      Base64.getEncoder().encode(x.doFinal((header + ('.' +: payload)).getBytes("utf-8")))
     }
-    case Some("ES384") => { //-> SHA384withECDSA
+    case "ES384" | Some("ES384") => { //-> SHA384withECDSA
       //not available by default
       val x = javax.crypto.Mac.getInstance("SHA384withECDSA")
-      x.init(new javax.crypto.spec.SecretKeySpec(key, "SHA384withECDSA"))
-      Some(x)
+      x.init(new javax.crypto.spec.SecretKeySpec(secret.getBytes("utf-8"), "SHA384withECDSA"))
+      Base64.getEncoder().encode(x.doFinal((header + ('.' +: payload)).getBytes("utf-8")))
     }
-    case Some("ES512") => { //-> SHA512withECDSA
+    case "ES512" | Some("ES512") => { //-> SHA512withECDSA
       //not available by default
       val x = javax.crypto.Mac.getInstance("SHA512withECDSA")
-      x.init(new javax.crypto.spec.SecretKeySpec(key, "SHA512withECDSA"))
-      Some(x)
+      x.init(new javax.crypto.spec.SecretKeySpec(secret.getBytes("utf-8"), "SHA512withECDSA"))
+      Base64.getEncoder().encode(x.doFinal((header + ('.' +: payload)).getBytes("utf-8")))
     }
-    case x => None
+    case x => throw new Exception(s"Unsupported algorithm")
   }
+}
+
+object now extends (() => Int) {
+  def apply(): Int = (System.currentTimeMillis() / 1000).asInstanceOf[Int]
+}
+
+object serialize extends (Map[String,Any] => String) {
+  def apply(value: Map[String,Any]): String =
+    Base64.getEncoder().encode(jsondumps(value).getBytes("utf-8"))
+}
+
+object deserialize extends (String => Map[String,Any]) {
+  def apply(value: String): Map[String,Any] =
+    jsonloads(Base64.getDecoder().decode(value.getBytes("utf-8")).replaceAll("[\\r\\n]+", ""))
 }
