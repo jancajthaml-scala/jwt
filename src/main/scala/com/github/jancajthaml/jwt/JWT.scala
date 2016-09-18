@@ -3,6 +3,8 @@ package com.github.jancajthaml.jwt
 //@todo add copy function that just prolong issued at and expiration if present and
 //patches iss with this method if present
 
+//@todo have secret in UTF8 Array[Byte] maybe?
+
 object encode extends ((Map[String, Any], String, String) => scala.util.Try[String]) {
 
   def apply(body: Map[String, Any], alg: String, secret: String): scala.util.Try[String] = {
