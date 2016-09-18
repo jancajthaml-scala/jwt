@@ -1,14 +1,11 @@
 package com.github.jancajthaml.jwt
 
 import com.github.jancajthaml.json.{jsondumps, jsonloads}
-
-//import collection.mutable.Stack
-import org.scalatest._
-
+import org.scalatest.{FlatSpec, Matchers}
 import java.util.Base64
 import scala.util.{Try,Success,Failure}
 
-class JSONSpecs extends FlatSpec with Matchers {
+class JWTSpecs extends FlatSpec with Matchers {
 
   val secret: String = "secret"
 
@@ -131,6 +128,12 @@ class JSONSpecs extends FlatSpec with Matchers {
   //ES384
   //ES512
 
+}
+
+class ClaimsSpecs extends FlatSpec with Matchers {
+
+  val secret: String = "secret"
+
   "decode" should "validate expiration" in {
     val token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjEzMDA4MTkzODB9.DoA5WoO-SAnm7jlz7316bLAHD8Qt1CUMBVFmXTZrwcQ"
 
@@ -169,6 +172,5 @@ class JSONSpecs extends FlatSpec with Matchers {
       }
     }
   }
-  
 
 }
