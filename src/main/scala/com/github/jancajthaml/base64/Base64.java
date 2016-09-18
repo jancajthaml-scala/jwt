@@ -20,9 +20,9 @@ public class Base64 {
 
     public static class Encoder {
 
-        private Encoder() {}
-
         private static final Encoder instance = new Encoder();
+
+        private Encoder() {}
 
         public String encode(byte[] src) {
             int sLen = src != null ? src.length : 0;
@@ -60,10 +60,9 @@ public class Base64 {
     public static Decoder getDecoder() { return Decoder.instance; }
 
     public static class Decoder {
+        private static final Decoder instance = new Decoder();
 
         private Decoder() {}
-
-        private static final Decoder instance = new Decoder();
 
         public String decode(byte[] src) {
             int sLen = src.length;
@@ -71,7 +70,9 @@ public class Base64 {
                 return "";
             }
 
-            int sIx = 0, eIx = sLen - 1;
+            int sIx = 0;
+            int eIx = sLen - 1;
+
             while (sIx < eIx && fromBase64URL[src[sIx] & 0xff] < 0) {
                 sIx++;
             }
@@ -85,7 +86,9 @@ public class Base64 {
             int len = ((cCnt - sepCnt) * 6 >> 3) - pad;
             byte[] dest = new byte[len];
             int d = 0;
-            for (int cc = 0, eLen = (len / 3) * 3; d < eLen;) {
+            int cc = 0;
+            int eLen = 0;
+            for (cc = 0, eLen = (len / 3) * 3; d < eLen;) {
                 int i = fromBase64URL[src[sIx++]] << 18 | fromBase64URL[src[sIx++]] << 12 | fromBase64URL[src[sIx++]] << 6 | fromBase64URL[src[sIx++]];
                 dest[d++] = (byte) (i >> 16);
                 dest[d++] = (byte) (i >> 8);
