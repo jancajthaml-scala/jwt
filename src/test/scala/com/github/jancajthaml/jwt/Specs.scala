@@ -61,7 +61,7 @@ class JSONSpecs extends FlatSpec with Matchers {
 
     val payloadDecoded = jsonloads(decodeB64Native(parts(1)))
 
-    payloadDecoded.keys should have size (payload.keys.size)
+    payloadDecoded.keys should have size (payload.keys.size + 1)
     payloadDecoded.getOrElse("x", None) should === ("y")
   }
 
@@ -138,5 +138,21 @@ class JSONSpecs extends FlatSpec with Matchers {
   //ES256
   //ES384
   //ES512
+
+  "decode" should "validate expiration" in {
+    val token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjEzMDA4MTkzODB9.DoA5WoO-SAnm7jlz7316bLAHD8Qt1CUMBVFmXTZrwcQ"
+    an [Exception] should be thrownBy decode(token, secret)
+  }
+
+  it should "validate issued at" in {
+    val token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpYXQiOjMzMDMxMTE1NjY3fQ.vNsYl7WHXd5kPW7e7dWlsbeKDEGHOtnfI8mnIfEAvfE"
+    an [Exception] should be thrownBy decode(token, secret)
+  }
+
+  it should "validate use not before" in {
+    val token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJuYmYiOjMzMDMxMTE1NjY3fQ.e1zTfpTdvKa6TE74NGOKhDhxwgkHe2f9X05W4xDJrxE"
+    an [Exception] should be thrownBy decode(token, secret)
+  }
+  
 
 }
