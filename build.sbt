@@ -37,7 +37,7 @@ javaOptions in Global ++= Seq(
 )
 */
 
-lazy val json = RootProject(uri("git://github.com/jancajthaml-scala/json.git#b026003d3e59a229ff8a5f0cfbcb92158a6c149d"))
+lazy val json = RootProject(uri("git://github.com/jancajthaml-scala/json.git#6c4b2c1db900a8f675625166290e5fbdb4a46d44"))
 lazy val uuid = RootProject(uri("git://github.com/jancajthaml-scala/uuid.git#9701eca7123d551da4877fa550527ee685c965c5"))
 
 lazy val test = Project(
