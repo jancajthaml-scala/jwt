@@ -13,9 +13,8 @@ class JWTSpecs extends FlatSpec with Matchers {
 
   "encode" should "have valid header" in {
     encode(Map(), "HS256", secret) match {
-      case Success(x) => {
-        val token = x
-        val parts = x.split("\\.")
+      case Success(token) => {
+        val parts = token.split("\\.")
 
         parts should have size (3)
 
@@ -39,9 +38,8 @@ class JWTSpecs extends FlatSpec with Matchers {
     )
 
     encode(payload, "HS256", secret) match {
-      case Success(x) => {
-        val token = x
-        val parts = x.split("\\.")
+      case Success(token) => {
+        val parts = token.split("\\.")
 
         parts should have size (3)
 
@@ -61,9 +59,8 @@ class JWTSpecs extends FlatSpec with Matchers {
     val algorithm: String = "HS256"
 
     encode(Map(), algorithm, secret) match {
-      case Success(x) => {
-        val token = x
-        val parts = x.split("\\.")
+      case Success(token) => {
+        val parts = token.split("\\.")
 
         parts should have size (3)
 
@@ -82,9 +79,8 @@ class JWTSpecs extends FlatSpec with Matchers {
     val algorithm: String = "HS384"
 
     encode(Map(), algorithm, secret) match {
-      case Success(x) => {
-        val token = x
-        val parts = x.split("\\.")
+      case Success(token) => {
+        val parts = token.split("\\.")
 
         parts should have size (3)
 

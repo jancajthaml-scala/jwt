@@ -41,23 +41,20 @@ object decode extends ((String, String) => scala.util.Try[Map[String, Any]]) {
 
       body.get("iat") match {
         case None => {}
-        case x => if (x.get.asInstanceOf[Long] > time) {
+        case Some(x) => if (x.asInstanceOf[Long] > time)
           throw new Exception("Token is issued at future (iat validation failed)")
-        }
       }
 
       body.get("exp") match {
         case None => {}
-        case x => if (x.get.asInstanceOf[Long] < time) {
+        case Some(x) => if (x.asInstanceOf[Long] < time)
           throw new Exception("Token is expired (exp validation failed)")
-        }
       }
 
       body.get("nbf") match {
         case None => {}
-        case x => if (x.get.asInstanceOf[Long] > time) {
+        case Some(x) => if (x.asInstanceOf[Long] > time)
           throw new Exception("Used too early (nbf validation failed)")
-        }
       }
 
       body

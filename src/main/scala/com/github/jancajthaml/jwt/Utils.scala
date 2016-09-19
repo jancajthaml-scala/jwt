@@ -75,5 +75,5 @@ object serialize extends (Map[String, Any] => String) {
 object deserialize extends (String => Map[String, Any]) {
 
   def apply(value: String): Map[String, Any] =
-    jsonloads(Base64.getDecoder().decode(value.getBytes("utf-8")).replaceAll("[\\r\\n]+", ""))
+    jsonloads(Base64.getDecoder().decode(value.getBytes("utf-8")))
 }

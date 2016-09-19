@@ -33,8 +33,9 @@ public class Base64 {
                 int cCnt = ((sLen - 1) / 3 + 1) << 2;
                 int dLen = cCnt;
                 byte[] dest = new byte[dLen];
-
-                for (int s = 0, d = 0; s < eLen;) {
+                int s = 0;
+                int d = 0;
+                for (s = 0, d = 0; s < eLen;) {
                     int i = (src[s++] & 0xff) << 16 | (src[s++] & 0xff) << 8 | (src[s++] & 0xff);
 
                     dest[d++] = (byte) toBase64URL[(i >>> 18) & 0x3f];
