@@ -37,6 +37,11 @@ class JWTSpecs extends FlatSpec with Matchers {
       "x" -> "y"
     )
 
+    val mandatoryClaims = Map(
+      "iat" -> 1L,
+      "jti" -> "x"
+    )
+
     encode(payload, "HS256", secret) match {
       case Success(token) => {
         val parts = token.split("\\.")
@@ -45,7 +50,7 @@ class JWTSpecs extends FlatSpec with Matchers {
 
         val payloadDecoded = jsonloads(decodeB64Native(parts(1)))
 
-        payloadDecoded.keys should have size (payload.keys.size + 1)
+        payloadDecoded.keys should have size (payload.keys.size + mandatoryClaims.keys.size)
         payloadDecoded.getOrElse("x", None) should === ("y")
       }
       case Failure(f) => {
@@ -136,10 +141,9 @@ class ClaimsSpecs extends FlatSpec with Matchers {
     decode(token, secret) match {
       case Success(x) => {
         false should === (true)
+        //@todo reject test now
       }
-      case Failure(f) => {
-        true should === (true)
-      }
+      case Failure(f) => true should === (true)
     }
   }
 
@@ -149,10 +153,9 @@ class ClaimsSpecs extends FlatSpec with Matchers {
     decode(token, secret) match {
       case Success(x) => {
         false should === (true)
+        //@todo reject test now
       }
-      case Failure(f) => {
-        true should === (true)
-      }
+      case Failure(f) => true should === (true)
     }
   }
 
@@ -162,9 +165,25 @@ class ClaimsSpecs extends FlatSpec with Matchers {
     decode(token, secret) match {
       case Success(x) => {
         false should === (true)
+        //@todo reject test now
       }
       case Failure(f) => {
         true should === (true)
+      }
+    }
+  }
+
+  it should "contains jti" in {
+    val token: String = encode(Map(), "HS256", secret) match {
+      case Success(x) => x
+      case Failure(f) => ""
+    }
+
+    decode(token, secret) match {
+      case Success(body) => body.getOrElse("jti", None) should not be (None)
+      case Failure(f) => {
+        false should === (true)
+        //@todo reject test now
       }
     }
   }

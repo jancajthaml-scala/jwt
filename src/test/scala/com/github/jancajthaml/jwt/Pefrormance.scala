@@ -6,7 +6,7 @@ import scala.util.{Try,Success,Failure}
 object Regression extends Bench.OfflineReport {
 
   val secret = "secret"
-  val times = Gen.range("times")(0, 100000, 20000)
+  val times = Gen.range("times")(0, 10000, 2000)
   val token: String = encode(Map(), "HS256", "secret") match {
     case Success(x) => x
     case Failure(f) => ""

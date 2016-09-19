@@ -1,16 +1,21 @@
 package com.github.jancajthaml.jwt
 
+import com.github.jancajthaml.uuid
+
 //@todo add copy function that just prolong issued at and expiration if present and
 //patches iss with this method if present
 
 //@todo have secret in UTF8 Array[Byte] maybe?
 
+//@todo add jti claim (uuid) its mandatory
 object encode extends ((Map[String, Any], String, String) => scala.util.Try[String]) {
 
   def apply(body: Map[String, Any], alg: String, secret: String): scala.util.Try[String] = {
     scala.util.Try({
       val header: String = serialize(Map("alg" -> alg, "typ" -> "JWT"))
-      val payload: String = serialize(Map("iat" -> now()) ++ body)
+      val payload: String = serialize(body ++ Map(
+        "iat" -> now(), "jti" -> uuid()
+      ))
       header + ('.' +: payload) + ('.' +: (sign(header, payload, alg, secret)))
     })
   }
@@ -41,19 +46,19 @@ object decode extends ((String, String) => scala.util.Try[Map[String, Any]]) {
 
       body.get("iat") match {
         case None => {}
-        case Some(x) => if (x.asInstanceOf[Long] > time)
+        case Some(x) => if (x.asInstanceOf[Number].longValue > time)
           throw new Exception("Token is issued at future (iat validation failed)")
       }
 
       body.get("exp") match {
         case None => {}
-        case Some(x) => if (x.asInstanceOf[Long] < time)
+        case Some(x) => if (x.asInstanceOf[Number].longValue < time)
           throw new Exception("Token is expired (exp validation failed)")
       }
 
       body.get("nbf") match {
         case None => {}
-        case Some(x) => if (x.asInstanceOf[Long] > time)
+        case Some(x) => if (x.asInstanceOf[Number].longValue > time)
           throw new Exception("Used too early (nbf validation failed)")
       }
 
