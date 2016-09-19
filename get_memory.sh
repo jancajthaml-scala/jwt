@@ -1,6 +1,8 @@
+#!/bin/sh
+
 # currently only for OSX
 
-while read B dummy; do
+while read B; do
   [ $B -lt 1024 ] && echo ${B}B && break
   KB=$(((B+512)/1024))
   [ $KB -lt 1024 ] && echo ${KB}K && break
