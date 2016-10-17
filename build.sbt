@@ -21,7 +21,6 @@ scalacOptions in Global ++= Seq(
   "-feature",
   "-Xfatal-warnings",
   "-Xlint",
-  //"-Xlint:deprecation",
   "-Yrangepos",
   "-language:postfixOps"
 )
@@ -37,8 +36,8 @@ javaOptions in Global ++= Seq(
 )
 */
 
-lazy val json = RootProject(uri("git://github.com/jancajthaml-scala/json.git#6c4b2c1db900a8f675625166290e5fbdb4a46d44"))
-lazy val uuid = RootProject(uri("git://github.com/jancajthaml-scala/uuid.git#9701eca7123d551da4877fa550527ee685c965c5"))
+lazy val json = RootProject(uri("git://github.com/jancajthaml-scala/json.git#7e1458255940133bc7e760d72a4876ca37708cad"))
+lazy val uuid = RootProject(uri("git://github.com/jancajthaml-scala/uuid.git#ba602be82868122493f7fdd347b5f796f9f353f6"))
 
 lazy val test = Project(
   "test",
